@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True, eq=False)
 class ScoreConstant:
     """
     得点の評価に必要な定数をまとめたものである。
