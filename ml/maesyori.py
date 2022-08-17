@@ -24,4 +24,6 @@ def preprocess_input(onsei_data: np.ndarray) -> np.ndarray:
     mel_non_zero = np.where(mel_spectrogram == 0,
                             np.finfo(float).eps, mel_spectrogram)
     common_logarithm = amplitude_to_db(mel_non_zero)
-    return common_logarithm
+    max_value = common_logarithm.max()
+    min_value = common_logarithm.min()
+    return (common_logarithm - min_value) / (max_value - min_value)
