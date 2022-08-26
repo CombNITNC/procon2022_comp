@@ -13,7 +13,7 @@ except ImportError:
 
 def sample_data(question_sub_dir):
 
-    with open(join("..", "sample", question_sub_dir, "information.txt")) as sample_file:
+    with open(join("..", "sample", question_sub_dir, "information.txt"), encoding="utf-8") as sample_file:
         parsed = yaml.load(sample_file, Loader=Loader)
         seikai_parsed_split = parsed.speech.split(",")
         nsplit = parsed.nsplit
