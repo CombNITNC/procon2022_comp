@@ -6,7 +6,7 @@ def neural_voice_judgment_model():
     model = Sequential()
 
     model.add(Conv2D(8, (5, 5), activation='relu', input_shape=(
-        128, 128, 1), output_shape=(124, 124, 8)))
+        128, 128, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2), output_shape=(62, 62, 8)))
     model.add(Conv2D(16, (5, 5), activation='relu', output_shape=(58, 58, 16)))
     model.add(MaxPooling2D(pool_size=(2, 2), output_shape=(29, 29, 16)))
