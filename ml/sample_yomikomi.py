@@ -15,15 +15,15 @@ def sample_data(question_sub_dir):
 
     with open(join("..", "sample", question_sub_dir, "information.txt"), encoding="utf-8") as sample_file:
         parsed = yaml.load(sample_file, Loader=Loader)
-        seikai_parsed_split = parsed.speech.split(",")
-        nsplit = parsed.nsplit
+        seikai_parsed_split = parsed["speech"].split(",")
+        nsplit = parsed["nsplit"]
 
     bunkatu_list = []
 
     for sample in range(1, nsplit+1):
         sample_bunkatu = join("..", "sample", question_sub_dir,
                               f"problem{sample}.wav")
-        bunkatu_onsei = read(sample_bunkatu)
+        _rate, bunkatu_onsei = read(sample_bunkatu)
         bunkatu_graph = preprocess_input(bunkatu_onsei)
         bunkatu_list.append(bunkatu_graph)
 

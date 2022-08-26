@@ -9,7 +9,7 @@ sr = 48000
 
 def preprocess_input(onsei_data: np.ndarray) -> np.ndarray:
     slice_len = int(sr * 1.27)
-    kiritori = random.randrange(0, len(onsei_data) - slice_len)
+    kiritori = random.randrange(0, max(1, len(onsei_data) - slice_len))
     sliced = np.resize(onsei_data[kiritori:kiritori+slice_len], slice_len)
 
     # プリエンファシスフィルタ:
