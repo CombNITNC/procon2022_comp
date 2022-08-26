@@ -5,12 +5,16 @@ from itertools import product
 from maesyori import preprocess_input
 from os.path import join
 from scipy.io.wavfile import read
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 
 def sample_data(question_sub_dir):
 
     with open(join("..", "sample", question_sub_dir, "information.txt")) as sample_file:
-        parsed = yaml.load(sample_file)
+        parsed = yaml.load(sample_file, Loader=Loader)
         seikai_parsed_split = parsed.speech.split(",")
         nsplit = parsed.nsplit
 
