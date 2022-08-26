@@ -41,10 +41,10 @@ def sample_data(question_sub_dir):
 def sample_all_data():
 
     sample_pair_data = []
-
     for sample_dir in os.listdir(join("..", "sample")):
-        sample_pair_list = sample_data(sample_dir)
+        if os.path.isdir(join("..", "sample", sample_dir)):
+            sample_pair_list = sample_data(sample_dir)
 
-        sample_pair_data += sample_pair_list
+            sample_pair_data += sample_pair_list
 
     return sample_pair_data
