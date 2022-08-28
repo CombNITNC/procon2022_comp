@@ -1,0 +1,20 @@
+name: Run test
+
+on:
+  pull_request:
+
+jobs:
+  unittest:
+    name: unittest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9.13"
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+      - name: Run unittest in solver
+        run: |
+          python -m unittest discover -s solver -p '*_test.py'
