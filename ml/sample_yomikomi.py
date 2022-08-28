@@ -37,7 +37,7 @@ def sample_data(question_sub_dir):
 
     seikai_data = seikai_tf
 
-    pair_data = list(product(bunkatu_list, seikai_data))
+    pair_data = [(bunkatu_list[0], seikai_data[0])]
 
     return pair_data
 
