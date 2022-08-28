@@ -16,7 +16,7 @@ class CardIndex:
     """
     _index: int
 
-    def __postinit__(self) -> None:
+    def __post_init__(self) -> None:
         if not (1 <= self._index <= 44):
             raise ValueError("index must be between 1 and 44")
 
