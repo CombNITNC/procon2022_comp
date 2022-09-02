@@ -147,7 +147,7 @@ class Requester:
             )
             if not file_res.ok:
                 raise Exception(file_res.text)
-            wav = wavfile.read(file_res.raw)
+            _rate, wav = wavfile.read(file_res.raw)
             chunks.append(Chunk(segment_index=index, wav=wav))
         return chunks
 
