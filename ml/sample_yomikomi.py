@@ -33,11 +33,14 @@ def sample_data(question_sub_dir):
         seikai_parsed_number = int(seikai_split[1:])
         seikai_list.append(seikai_parsed_number-1)
 
-    seikai_tf = tf.keras.utils.to_categorical(seikai_list, num_classes=44)
+    seikai_data = [0.0]*44
+    for seikai_index in seikai_list:
+        seikai_data[seikai_index] = 1.0
 
-    seikai_data = seikai_tf
+    pair_data = []
 
-    pair_data = [(bunkatu_list[0], seikai_data[0])]
+    for bunkatu_data in bunkatu_list:
+        pair_data.append((bunkatu_data, seikai_data))
 
     return pair_data
 
