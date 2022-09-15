@@ -26,13 +26,16 @@ def waveform_sample_data():
         waveform_loading.append(waveform_onsei)
 
     sample_length = 96000
-    test_sample = np.empty(sample_length)
+    test_sample = np.zeros(sample_length)
     for waveform_data in waveform_loading:
         cut = random.randrange(0, max(1, len(waveform_data)))
         sliced = np.resize(
             waveform_data[cut:cut + sample_length], sample_length)
         test_sample += sliced
-
     neural_input_data = preprocess_input(test_sample)
 
-    return (neural_input_data, yomidata_list)
+    neural_output = [0.0]*44
+    for use_number in shuffle_list:
+        neural_output[use_number-1] = 1.0
+
+    return (neural_input_data, neural_output)
