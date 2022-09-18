@@ -27,4 +27,4 @@ processing_test_image = np.array(test_image_list)
 idx2numpy.convert_to_file(
     join("..", "dataset", "test_label.idx"), processing_test_label)
 idx2numpy.convert_to_file(
-    join("..", "dataset", "test_image.idx"), processing_test_label)
+    join("..", "dataset", "test_image.idx"), processing_test_image)
