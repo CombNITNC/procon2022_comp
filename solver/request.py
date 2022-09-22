@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from os.path import join
 import numpy as np
 import requests
 from scipy.io import wavfile
@@ -116,7 +117,7 @@ class Requester:
             raise Exception(res.text)
         return Problem(**res.json())
 
-    def get_chunks(self, using_chunks: int) -> list[Chunk]:
+    def get_chunks(self, using_chunks: int, save_dir: str) -> list[Chunk]:
         """現在出題中の問題における断片データのリストを取得する。
 
         Args:
@@ -147,7 +148,13 @@ class Requester:
             )
             if not file_res.ok:
                 raise Exception(file_res.text)
-            _rate, wav = wavfile.read(file_res.raw)
+
+            wav_path = join(save_dir, chunk_filename)
+            with open(wav_path, 'wb') as f:
+                f.truncate()
+                f.write(file_res.content)
+
+            _rate, wav = wavfile.read(wav_path)
             chunks.append(Chunk(segment_index=index, wav=wav))
         return chunks
 
