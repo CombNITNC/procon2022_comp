@@ -26,6 +26,9 @@ class CardIndex:
     def __str__(self) -> str:
         return KANA[self._index - 1]
 
+    def as_0_pad(self) -> str:
+        return f'{self._index:02}'
+
     @staticmethod
     def from_kana(kana: str) -> "CardIndex":
         return CardIndex(KANA.find(kana) + 1)
