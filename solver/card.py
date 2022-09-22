@@ -77,14 +77,14 @@ class IncludedRates:
 
 
 @dataclass(eq=False)
-class ShouldPickCardsByRound:
+class ShouldPickCardsByProblem:
     """
     各問題データごとに、その札が含まれている確率を管理する。
     """
-    _should: list[dict[CardIndex, float]]
+    _should: dict[str, dict[CardIndex, float]]
 
-    def __init__(self, rounds: int) -> None:
-        self._should = [dict() for _ in range(rounds)]
+    def __init__(self) -> None:
+        self._should = dict()
 
     def save_yaml(self, path: str) -> None:
         output = yaml.dump(self._should, Dumper=Dumper)
@@ -92,21 +92,24 @@ class ShouldPickCardsByRound:
             f.truncate()
             f.write(output)
 
-    def add(self, round: int, index: CardIndex, prob: float) -> None:
-        self._should[round][index] = prob
+    def add(self, problem: str, index: CardIndex, prob: float) -> None:
+        self._should[problem][index] = prob
 
-    def remove(self, round: int, index: CardIndex) -> None:
-        self._should[round].pop(index)
+    def remove(self, problem: str, index: CardIndex) -> None:
+        self._should[problem].pop(index)
 
-    def cards_on(self, round: int) -> int:
-        return len(self._should[round])
+    def cards_on(self, problem: str) -> int:
+        return len(self._should[problem])
 
-    def probability(self, round: int, index: CardIndex) -> float:
-        return self._should[round].get(index, 0.0)
+    def problems(self) -> Iterable[str]:
+        return self._should.keys()
+
+    def probability(self, problem: str, index: CardIndex) -> float:
+        return self._should[problem].get(index, 0.0)
 
 
-def should_pick_cards_from_yaml(path: str) -> ShouldPickCardsByRound:
-    should = ShouldPickCardsByRound(0)
+def should_pick_cards_from_yaml(path: str) -> ShouldPickCardsByProblem:
+    should = ShouldPickCardsByProblem()
     with open(path, 'r', newline='') as f:
         should._should = yaml.load(f, Loader=Loader)
     return should

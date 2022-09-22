@@ -1,10 +1,10 @@
-from solver.card import CardIndex, ShouldPickCardsByRound
+from solver.card import CardIndex, ShouldPickCardsByProblem
 from typing import Final, Iterable, Optional, Tuple, TypedDict
 
 
 def solve_by_binary_search(
-    rounds: int,
-    should_pick_sets: ShouldPickCardsByRound
+    problems: int,
+    should_pick_sets: ShouldPickCardsByProblem
 ) -> Optional[Tuple[list[CardIndex], float]]:
     EPS: Final = 0.001
 
@@ -12,20 +12,20 @@ def solve_by_binary_search(
     end = 1.0
     while EPS < (end - start):
         mid = (end - start) / 2 + start
-        ways = solve(rounds, should_pick_sets, mid)
+        ways = solve(problems, should_pick_sets, mid)
         if ways is None:
             end = mid
         else:
             start = mid
-    ways = solve(rounds, should_pick_sets, start)
+    ways = solve(problems, should_pick_sets, start)
     if ways is None:
         return None
     return (ways, start)
 
 
 def solve(
-    rounds: int,
-    should_pick_sets: ShouldPickCardsByRound,
+    problems: int,
+    should_pick_sets: ShouldPickCardsByProblem,
     pick_threshold: float
 ) -> Optional[list[CardIndex]]:
     """
@@ -45,7 +45,7 @@ def solve(
         cards: list[CardIndex]
 
     pick_lists = convert_to_pick_lists(
-        rounds, should_pick_sets, pick_threshold
+        should_pick_sets, pick_threshold
     )
     if pick_lists is None:
         return None
@@ -67,7 +67,7 @@ def solve(
         if index in memo:
             return memo[index]
         curr_round = len(curr_ways)
-        if curr_round == rounds:
+        if curr_round == problems:
             return curr_ways
 
         cards = pick_lists[curr_round]["cards"]
@@ -86,13 +86,12 @@ def solve(
 
 
 class ShouldPickList(TypedDict):
-    problem_round: int
+    problem_id: str
     cards: list[CardIndex]
 
 
 def convert_to_pick_lists(
-    rounds: int,
-    should_pick_sets: ShouldPickCardsByRound,
+    should_pick_sets: ShouldPickCardsByProblem,
     pick_threshold: float
 ) -> Optional[list[ShouldPickList]]:
     """
@@ -121,15 +120,15 @@ def convert_to_pick_lists(
         * P(ラウンド i - 1 で c を選ばない)
     Q_i,c = P_i,c * (Σ_{d ≠ c} P_i-1,d) = P_i,c * (1 - P_i-1,c)
     """
-    for r in range(rounds):
+    for problem in should_pick_sets.problems():
         pick_lists.append({
-            "problem_round": r,
+            "problem_id": problem,
             "cards": [],
         })
         for card in CardIndex.all():
             prev_probability = prev_probabilities.get(card, 0.0)
             probability = should_pick_sets.probability(
-                r, card
+                problem, card
             ) * (1.0 - prev_probability)
             if pick_threshold < probability:
                 pick_lists[-1]["cards"].append(card)
