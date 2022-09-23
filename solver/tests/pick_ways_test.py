@@ -28,9 +28,9 @@ class PickWaysTestCase(TestCase):
         self.assertEqual(
             answer,
             ([
-                CardIndex.from_kana('か'),
-                CardIndex.from_kana('つ'),
-                CardIndex.from_kana('し')
+                [CardIndex.from_kana('か')],
+                [CardIndex.from_kana('つ')],
+                [CardIndex.from_kana('し')]
             ], 0.7998046875)
         )
 
@@ -56,9 +56,9 @@ class PickWaysTestCase(TestCase):
         self.assertEqual(
             answer,
             ([
-                CardIndex.from_kana('う'),
-                CardIndex.from_kana('あ'),
-                CardIndex.from_kana('い'),
-                CardIndex.from_kana('え')
+                [CardIndex.from_kana('う')],
+                [CardIndex.from_kana('あ')],
+                [CardIndex.from_kana('い')],
+                [CardIndex.from_kana('え')]
             ], 0.3740234375)
         )
