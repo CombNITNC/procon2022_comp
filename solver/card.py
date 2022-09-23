@@ -102,6 +102,7 @@ class ShouldPickCardsByProblem:
             f.write(output)
 
     def insert(self, problem: str, index: CardIndex, prob: float) -> None:
+        self._should[problem] = ShouldPickCards({}, 1)
         self._should[problem].probabilities[index] = prob
 
     def remove(self, problem: str, index: CardIndex) -> None:
@@ -109,6 +110,9 @@ class ShouldPickCardsByProblem:
 
     def cards_on(self, problem: str) -> int:
         return len(self._should[problem].probabilities)
+
+    def set_picks_on(self, problem: str, picks: int) -> None:
+        self._should[problem].picks = picks
 
     def picks_on(self, problem: str) -> int:
         return self._should[problem].picks
