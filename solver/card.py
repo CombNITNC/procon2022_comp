@@ -91,9 +91,11 @@ class ShouldPickCardsByProblem:
     各問題データごとに、その札が含まれている確率と取るべき個数を管理する。
     """
     _should: dict[str, ShouldPickCards]
+    _problems: list[str]
 
     def __init__(self) -> None:
         self._should = dict()
+        self._problems = []
 
     def save_yaml(self, path: str) -> None:
         output = yaml.dump(self._should, Dumper=Dumper)
@@ -102,7 +104,9 @@ class ShouldPickCardsByProblem:
             f.write(output)
 
     def insert(self, problem: str, index: CardIndex, prob: float) -> None:
-        self._should[problem] = ShouldPickCards({}, 1)
+        if problem not in self._problems:
+            self._problems.append(problem)
+            self._should[problem] = ShouldPickCards({}, 1)
         self._should[problem].probabilities[index] = prob
 
     def remove(self, problem: str, index: CardIndex) -> None:
@@ -112,13 +116,16 @@ class ShouldPickCardsByProblem:
         return len(self._should[problem].probabilities)
 
     def set_picks_on(self, problem: str, picks: int) -> None:
+        if problem not in self._problems:
+            self._problems.append(problem)
+            self._should[problem] = ShouldPickCards({}, 1)
         self._should[problem].picks = picks
 
     def picks_on(self, problem: str) -> int:
         return self._should[problem].picks
 
     def problems(self) -> Iterable[str]:
-        return self._should.keys()
+        return self._problems
 
     def probability(self, problem: str, index: CardIndex) -> float:
         return self._should[problem].probabilities.get(index, 0.0)
