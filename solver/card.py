@@ -76,12 +76,21 @@ class IncludedRates:
             raise ValueError("len of rates must equal to 88")
 
 
+@dataclass(eq=True)
+class ShouldPickCards:
+    """
+    その札が含まれている確率と取るべき個数を表す。
+    """
+    probabilities: dict[CardIndex, float]
+    picks: int
+
+
 @dataclass(eq=False)
 class ShouldPickCardsByProblem:
     """
-    各問題データごとに、その札が含まれている確率を管理する。
+    各問題データごとに、その札が含まれている確率と取るべき個数を管理する。
     """
-    _should: dict[str, dict[CardIndex, float]]
+    _should: dict[str, ShouldPickCards]
 
     def __init__(self) -> None:
         self._should = dict()
@@ -93,19 +102,22 @@ class ShouldPickCardsByProblem:
             f.write(output)
 
     def add(self, problem: str, index: CardIndex, prob: float) -> None:
-        self._should[problem][index] = prob
+        self._should[problem].probabilities[index] = prob
 
     def remove(self, problem: str, index: CardIndex) -> None:
-        self._should[problem].pop(index)
+        self._should[problem].probabilities.pop(index)
 
     def cards_on(self, problem: str) -> int:
-        return len(self._should[problem])
+        return len(self._should[problem].probabilities)
+
+    def picks_on(self, problem: str) -> int:
+        return self._should[problem].picks
 
     def problems(self) -> Iterable[str]:
         return self._should.keys()
 
     def probability(self, problem: str, index: CardIndex) -> float:
-        return self._should[problem].get(index, 0.0)
+        return self._should[problem].probabilities.get(index, 0.0)
 
 
 def should_pick_cards_from_yaml(path: str) -> ShouldPickCardsByProblem:
