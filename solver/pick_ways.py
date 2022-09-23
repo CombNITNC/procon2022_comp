@@ -54,7 +54,7 @@ def solve(
             index = 0
             for card in cards:
                 index |= 1 << hash(card)
-            indexes += index << 45
+            indexes = (indexes << 45) + index
         return indexes
 
     memo: dict[int, Optional[list[list[CardIndex]]]] = {}
