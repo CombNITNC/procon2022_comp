@@ -101,7 +101,7 @@ class ShouldPickCardsByProblem:
             f.truncate()
             f.write(output)
 
-    def add(self, problem: str, index: CardIndex, prob: float) -> None:
+    def insert(self, problem: str, index: CardIndex, prob: float) -> None:
         self._should[problem].probabilities[index] = prob
 
     def remove(self, problem: str, index: CardIndex) -> None:
