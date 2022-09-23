@@ -53,7 +53,7 @@ class Chunk:
     wav: np.ndarray
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Answer:
     """問題に対する回答の情報。
 
