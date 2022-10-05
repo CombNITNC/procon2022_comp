@@ -114,7 +114,7 @@ def main():
                             ))
                         ))
 
-                should.save_yaml(TEMP_YAML_DIR)
+                should.save_yaml(PICK_CARDS_YAML)
                 current_state.save_yaml(STATE_YAML)
                 break
 
