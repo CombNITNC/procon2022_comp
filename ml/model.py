@@ -17,6 +17,6 @@ def neural_voice_judgment_model():
     model.add(Dense(17424, activation='relu'))
     model.add(Dense(1024, activation='relu'))
     model.add(Dense(500, activation='relu'))
-    model.add(Dense(44, activation='sigmoid'))
+    model.add(Dense(44))
 
     return model
