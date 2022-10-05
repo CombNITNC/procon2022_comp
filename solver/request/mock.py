@@ -20,7 +20,11 @@ class MockRequester(AbstractRequester):
     def get_chunks(self, using_chunks: int, _save_dir: str) -> list[Chunk]:
         chunks: list[Chunk] = []
         for idx in range(using_chunks):
-            chunk_path = join('sample', 'sample_Q_M01', f'problem{idx}.wav')
+            chunk_path = join(
+                'sample',
+                'sample_Q_M01',
+                f'problem{idx + 1}.wav',
+            )
             _sample, wav = wavfile.read(chunk_path)
             chunks.append(Chunk(idx, wav))
         return chunks
