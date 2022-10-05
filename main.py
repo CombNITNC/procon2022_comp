@@ -1,4 +1,3 @@
-from math import ceil
 from typing import Optional
 from solver.card import CardIndex, \
     ShouldPickCardsByProblem, \
@@ -16,7 +15,7 @@ from numpy import ndarray
 from solver.request.mock import MockRequester
 from solver.request.net import NetRequester
 
-from solver.score import calc_score
+from solver.score import calc_score, current_score
 from solver.state import SolverState, solver_state_from_yaml
 
 load_dotenv()
@@ -64,7 +63,8 @@ def main():
         if exists(STATE_YAML) \
         else SolverState(
         current_problem_id='',
-        used_chunks=[],
+        current_fails=0,
+        used_chunks={},
     )
 
     while True:
@@ -88,11 +88,14 @@ def find_answers(
     problem: Problem,
 ) -> list[Answer]:
     current_state.current_problem_id = problem.id
-    score_max = 0
+    score_max = current_score(current_state, should, score_const)
     answers: list[Answer] = []
 
     for using_chunks in range(1, problem.chunks + 1):
         chunks = req.get_chunks(using_chunks, TEMP_YAML_DIR)
+        current_state.used_chunks[problem.id] = max(
+            current_state.used_chunks[problem.id], using_chunks,
+        )
 
         images = []
         for chunk in chunks:
@@ -113,11 +116,9 @@ def find_answers(
         solution = solve_by_binary_search(match.problems, should)
         if solution is not None:
             picks_by_problem, acc = solution
-            corrects = ceil(problem.data * acc)
-            fails = problem.data - corrects
             score = calc_score(
-                corrects,
-                fails,
+                problem.data,
+                current_state.current_fails,
                 using_chunks,
                 const=score_const
             )

@@ -10,11 +10,13 @@ except ImportError:
 @dataclass()
 class SolverState:
     current_problem_id: str
-    used_chunks: list[int]
+    current_fails: int
+    used_chunks: dict[str, int]
 
     def save_yaml(self, path: str) -> None:
         output = yaml.dump({
             'current_round': self.current_problem_id,
+            'current_fails': self.current_fails,
             'using_chunks': self.used_chunks,
         }, Dumper=Dumper)
         with open(path, 'w') as f:
@@ -27,5 +29,6 @@ def solver_state_from_yaml(path: str) -> SolverState:
         obj = yaml.load(f, Loader=Loader)
         return SolverState(
             current_problem_id=obj['current_round'],
+            current_fails=obj['current_fails'],
             used_chunks=obj['using_chunks'],
         )
