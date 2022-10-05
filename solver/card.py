@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Final, Iterable
+from typing import Any, Final, Iterable
 import yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -84,6 +84,24 @@ class ShouldPickCards:
     probabilities: dict[CardIndex, float]
     picks: int
 
+    def plain(self):
+        return {
+            "probabilities": {
+                hash(k): v for k, v in self.probabilities.items()
+            },
+            "picks": self.picks,
+        }
+
+    @staticmethod
+    def from_plain(plain: dict[str, Any]) -> "ShouldPickCards":
+        probabilities = {
+            CardIndex(k): v for k, v in plain["probabilities"].items()
+        }
+        return ShouldPickCards(
+            probabilities=probabilities,
+            picks=plain["picks"]
+        )
+
 
 @dataclass(eq=False)
 class ShouldPickCardsByProblem:
@@ -98,7 +116,8 @@ class ShouldPickCardsByProblem:
         self._problems = []
 
     def save_yaml(self, path: str) -> None:
-        output = yaml.dump(self._should, Dumper=Dumper)
+        mapped = {k: v.plain() for k, v in self._should.items()}
+        output = yaml.dump(mapped, Dumper=Dumper)
         with open(path, 'w') as f:
             f.truncate()
             f.write(output)
@@ -134,5 +153,8 @@ class ShouldPickCardsByProblem:
 def should_pick_cards_from_yaml(path: str) -> ShouldPickCardsByProblem:
     should = ShouldPickCardsByProblem()
     with open(path, 'r', newline='') as f:
-        should._should = yaml.load(f, Loader=Loader)
+        plain = yaml.load(f, Loader=Loader)
+        should._should = {
+            k: ShouldPickCards.from_plain(v) for k, v in plain.items()
+        }
     return should

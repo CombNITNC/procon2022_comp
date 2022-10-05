@@ -26,6 +26,6 @@ def solver_state_from_yaml(path: str) -> SolverState:
     with open(path, 'r', newline='') as f:
         obj = yaml.load(f, Loader=Loader)
         return SolverState(
-            current_problem_id=obj.current_round,
-            used_chunks=obj.using_chunks,
+            current_problem_id=obj['current_round'],
+            used_chunks=obj['using_chunks'],
         )
