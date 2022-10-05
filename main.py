@@ -5,7 +5,7 @@ from solver.card import CardIndex, \
     should_pick_cards_from_yaml
 from solver.const import ScoreConstant
 from solver.pick_ways import solve_by_binary_search
-from solver.request import Answer, Requester
+from solver.request.meta import Answer
 from ml.maesyori import preprocess_input
 from os import getenv
 from os.path import join, exists
@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 import tensorflow as tf
 import numpy as np
 from numpy import ndarray
+from solver.request.mock import MockRequester
+from solver.request.net import NetRequester
 
 from solver.score import calc_score
 from solver.state import SolverState, solver_state_from_yaml
@@ -23,6 +25,7 @@ TEMP_YAML_DIR = getenv('TEMP_YAML_DIR')
 MODEL_PATH = getenv('MODEL_PATH')
 ENDPOINT = getenv('ENDPOINT')
 TOKEN = getenv('TOKEN')
+DEBUG = getenv('DEBUG')
 
 if TEMP_YAML_DIR is None or TEMP_YAML_DIR == '':
     raise Exception('env `TEMP_YAML_DIR` was not set')
@@ -47,7 +50,8 @@ def main():
     if model is None:
         raise Exception(f'model was not found at {MODEL_PATH}')
 
-    req = Requester(endpoint=ENDPOINT, token=TOKEN)
+    req = MockRequester() if DEBUG == "True" else NetRequester(
+        endpoint=ENDPOINT, token=TOKEN)
     match = req.get_match()
     score_const = ScoreConstant(1, match.bonus_factor, match.penalty)
 
