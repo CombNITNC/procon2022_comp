@@ -12,12 +12,14 @@ class SolverState:
     current_problem_id: str
     current_fails: int
     used_chunks: dict[str, int]
+    past_answers: dict[str, list[str]]
 
     def save_yaml(self, path: str) -> None:
         output = yaml.dump({
             'current_round': self.current_problem_id,
             'current_fails': self.current_fails,
             'using_chunks': self.used_chunks,
+            'past_answers': self.past_answers,
         }, Dumper=Dumper)
         with open(path, 'w') as f:
             f.truncate()
@@ -31,4 +33,5 @@ def solver_state_from_yaml(path: str) -> SolverState:
             current_problem_id=obj['current_round'],
             current_fails=obj['current_fails'],
             used_chunks=obj['using_chunks'],
+            past_answers=obj['past_answers'],
         )

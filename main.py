@@ -65,6 +65,7 @@ def main():
         current_problem_id='',
         current_fails=0,
         used_chunks={},
+        past_answers={},
     )
 
     while True:
@@ -125,13 +126,20 @@ def find_answers(
             if score_max < score:
                 score_max = score
                 for picks in picks_by_problem:
-                    answers.append(Answer(
+                    new_answer = Answer(
                         problem_id=problem.id,
                         answers=list(map(
                             lambda card_index: card_index.as_0_pad(),
                             picks,
                         )),
-                    ))
+                    )
+                    new_taking_set = set(new_answer.answers)
+                    old_taking_set = set(
+                        current_state.past_answers[problem.id])
+                    retaken_cards = len(
+                        new_taking_set.difference(old_taking_set))
+                    current_state.current_fails += retaken_cards
+                    answers.append(new_answer)
 
             should.save_yaml(PICK_CARDS_YAML)
             current_state.save_yaml(STATE_YAML)
