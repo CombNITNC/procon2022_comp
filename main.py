@@ -95,7 +95,7 @@ def find_answers(
     for using_chunks in range(1, problem.chunks + 1):
         chunks = req.get_chunks(using_chunks, TEMP_YAML_DIR)
         current_state.used_chunks[problem.id] = max(
-            current_state.used_chunks[problem.id], using_chunks,
+            current_state.used_chunks.get(problem.id, 0), using_chunks,
         )
 
         images = []
@@ -133,12 +133,14 @@ def find_answers(
                             picks,
                         )),
                     )
-                    new_taking_set = set(new_answer.answers)
-                    old_taking_set = set(
-                        current_state.past_answers[problem.id])
-                    retaken_cards = len(
-                        new_taking_set.difference(old_taking_set))
-                    current_state.current_fails += retaken_cards
+                    if problem.id in current_state.past_answers:
+                        new_taking_set = set(new_answer.answers)
+                        old_taking_set = set(
+                            current_state.past_answers[problem.id])
+                        retaken_cards = len(
+                            new_taking_set.difference(old_taking_set))
+                        current_state.current_fails += retaken_cards
+                    current_state.past_answers[problem.id] = new_answer.answers
                     answers.append(new_answer)
 
             should.save_yaml(PICK_CARDS_YAML)
