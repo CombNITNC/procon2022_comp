@@ -7,7 +7,6 @@ def data_augmentation():
         layers.RandomTranslation(height_factor=(
             0, 0), width_factor=(-0.5, 0.5)),
         layers.RandomContrast(factor=0.2),
-        layers.RandomFlip(mode="horizontal"),
         layers.RandomZoom(height_factor=0.2, width_factor=0.2),
     ])
     return sample_data_augmentation
