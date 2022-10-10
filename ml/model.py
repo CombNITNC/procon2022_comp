@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
+from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, BatchNormalization
 
 
 def neural_voice_judgment_model():
@@ -17,6 +17,7 @@ def neural_voice_judgment_model():
     model.add(Dense(17424, activation='relu'))
     model.add(Dense(1024, activation='relu'))
     model.add(Dense(500, activation='relu'))
+    model.add(BatchNormalization())
     model.add(Dense(44))
 
     return model
