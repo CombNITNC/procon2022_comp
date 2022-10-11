@@ -28,3 +28,16 @@ idx2numpy.convert_to_file(
     join("..", "dataset", "test_label.idx"), processing_test_label)
 idx2numpy.convert_to_file(
     join("..", "dataset", "test_image.idx"), processing_test_image)
+
+validation_label_list = []
+validation_image_list = []
+for validation_data in range(1000):
+    validation_image, validation_label = waveform_sample_data()
+    validation_label_list.append(validation_label)
+    validation_image_list.append(validation_image)
+processing_validation_label = np.array(validation_label_list)
+processing_validation_image = np.array(validation_image_list)
+idx2numpy.convert_to_file(
+    join("..", "dataset", "validation_label.idx"), processing_validation_label)
+idx2numpy.convert_to_file(
+    join("..", "dataset", "validation_image.idx"), processing_validation_image)
