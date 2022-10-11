@@ -5,6 +5,7 @@ from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, BatchNormalizatio
 def neural_voice_judgment_model():
     model = Sequential()
 
+    model.add(BatchNormalization())
     model.add(Conv2D(8, (5, 5), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(16, (5, 5), activation='relu'))
@@ -17,7 +18,6 @@ def neural_voice_judgment_model():
     model.add(Dense(17424, activation='relu'))
     model.add(Dense(1024, activation='relu'))
     model.add(Dense(500, activation='relu'))
-    model.add(BatchNormalization())
     model.add(Dense(44))
 
     return model
