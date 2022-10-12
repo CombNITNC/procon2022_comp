@@ -114,7 +114,6 @@ def convert_to_pick_lists(
     このとき、このデータを試合全体を通した確率として再計算する。
 
     引数:
-        - rounds: この試合の問題数。
         - should_pick_sets: 各問題データごとに、その札が含まれている確率のデータ。
         - pick_threshold: その札を取るべきと見なす確率のしきい値。
 
@@ -123,7 +122,7 @@ def convert_to_pick_lists(
     """
 
     pick_lists: list[ShouldPickList] = []
-    prev_probabilities: dict[CardIndex, float] = {}
+    opposite_sums: dict[str, dict[CardIndex, float]] = {}
 
     """
     ラウンド i で札 c と推定される確率を P_i,c とし,
@@ -133,8 +132,24 @@ def convert_to_pick_lists(
     P(ラウンド i で c を選ぶ ∩ ラウンド i - 1 で c を選ばない)
         = P(ラウンド i で c を選ぶ | ラウンド i - 1 で c を選ばない)
         * P(ラウンド i - 1 で c を選ばない)
-    Q_i,c = P_i,c * (Σ_{d ≠ c} P_i-1,d) = P_i,c * (1 - P_i-1,c)
+    Q_i,c = P_i,c * (Σ_{d ≠ c} P_i-1,d)
     """
+
+    problems = iter(should_pick_sets.problems())
+    prev = next(problems)
+    opposite_sums[prev] = {}
+    for index in CardIndex.all():
+        opposite_sums[prev][index] = should_pick_sets.probability(prev, index)
+    for problem in problems:
+        opposite_sums[problem] = {}
+        for after in CardIndex.all():
+            opposite_sums[problem][after] = 0.0
+            for before in CardIndex.all():
+                if before != after:
+                    opposite_sums[problem][after] += \
+                        opposite_sums[prev][before]
+        prev = problem
+
     for problem in should_pick_sets.problems():
         picks = should_pick_sets.picks_on(problem)
         pick_lists.append(ShouldPickList(
@@ -143,13 +158,11 @@ def convert_to_pick_lists(
             picks=picks,
         ))
         for card in CardIndex.all():
-            prev_probability = prev_probabilities.get(card, 0.0)
             probability = should_pick_sets.probability(
                 problem, card
-            ) * (1.0 - prev_probability)
+            ) * opposite_sums[problem][card]
             if pick_threshold < probability:
                 pick_lists[-1].cards.append(card)
-            prev_probabilities[card] = probability
         if len(pick_lists[-1].cards) < picks:
             return None
 
