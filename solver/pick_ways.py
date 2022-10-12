@@ -137,10 +137,11 @@ def convert_to_pick_lists(
     Q_i,c = P_i,c * (Σ_{d ≠ c} P_i-1,d) = P_i,c * (1 - P_i-1,c)
     """
     for problem in should_pick_sets.problems():
+        picks = should_pick_sets.picks_on(problem)
         pick_lists.append(ShouldPickList(
             problem_id=problem,
             cards=[],
-            picks=should_pick_sets.picks_on(problem),
+            picks=picks,
         ))
         for card in CardIndex.all():
             prev_probability = prev_probabilities.get(card, 0.0)
@@ -150,7 +151,7 @@ def convert_to_pick_lists(
             if pick_threshold < probability:
                 pick_lists[-1].cards.append(card)
             prev_probabilities[card] = probability
-        if len(pick_lists[-1].cards) == 0:
+        if len(pick_lists[-1].cards) < picks:
             return None
 
     return pick_lists
