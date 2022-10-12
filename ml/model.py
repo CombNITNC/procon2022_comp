@@ -8,6 +8,7 @@ def neural_voice_judgment_model():
 
     model.add(Conv2D(8, (5, 5), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(BatchNormalization())
     model.add(Conv2D(16, (5, 5), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(100, (5, 5), activation='relu'))
