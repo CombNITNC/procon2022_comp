@@ -6,6 +6,7 @@ from solver.const import ScoreConstant
 from solver.pick_ways import solve_by_binary_search
 from solver.request.meta import AbstractRequester, Answer, Match, Problem
 from ml.maesyori import preprocess_input
+from ml.focal_loss import focal_loss
 from os import getenv
 from os.path import join, exists
 from dotenv import load_dotenv
@@ -44,7 +45,12 @@ def main():
     print(f'Using model path: {MODEL_PATH}')
     print(f'Accessing endpoint: {ENDPOINT}')
 
-    model: Optional[tf.keras.Model] = tf.keras.models.load_model(MODEL_PATH)
+    model: Optional[tf.keras.Model] = tf.keras.models.load_model(
+        MODEL_PATH,
+        custom_objects={
+            'focal_loss_fixed': focal_loss(gamma=1.5, alpha=0.25),
+        },
+    )
 
     if model is None:
         raise Exception(f'model was not found at {MODEL_PATH}')
