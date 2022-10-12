@@ -146,6 +146,9 @@ class ShouldPickCardsByProblem:
     def problems(self) -> Iterable[str]:
         return self._problems
 
+    def problem_count(self) -> int:
+        return len(self._problems)
+
     def probability(self, problem: str, index: CardIndex) -> float:
         return self._should[problem].probabilities.get(index, 0.0)
 
