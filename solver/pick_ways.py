@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from solver.card import CardIndex, ShouldPickCardsByProblem
 from typing import Final, Iterable, Optional, Tuple
-from itertools import combinations_with_replacement
+from itertools import combinations
 
 
 def solve_by_binary_search(
@@ -71,7 +71,7 @@ def solve(
         if curr_round == problems:
             return curr_ways
 
-        patterns = combinations_with_replacement(
+        patterns = combinations(
             pick_lists[curr_round].cards,
             pick_lists[curr_round].picks
         )
@@ -83,10 +83,9 @@ def solve(
             patterns
         )
         for pattern in filtered_patterns:
-            curr_ways.append([])
+            curr_ways.append(list(pattern))
             for card in pattern:
                 visited.add(card)
-                curr_ways[-1].append(card)
             recursive_result = inner(curr_ways, visited, pick_lists)
             memo[index_from_cards(curr_ways)] = recursive_result
             if recursive_result is not None:
