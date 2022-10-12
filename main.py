@@ -115,39 +115,40 @@ def find_answers(
         should.set_picks_on(current_state.current_problem_id, problem.data)
 
         solution = solve_by_binary_search(match.problems, should)
-        if solution is not None:
-            picks_by_problem, acc = solution
-            score = calc_score(
-                problem.data,
-                current_state.current_fails,
-                using_chunks,
-                const=score_const
-            )
-            if score_max < score:
-                score_max = score
-                for picks in picks_by_problem:
-                    new_answer = Answer(
-                        problem_id=problem.id,
-                        answers=list(map(
-                            lambda card_index: card_index.as_0_pad(),
-                            picks,
-                        )),
-                    )
-                    if problem.id in current_state.past_answers:
-                        new_taking_set = set(new_answer.answers)
-                        old_taking_set = set(
-                            current_state.past_answers[problem.id])
-                        retaken_cards = len(
-                            new_taking_set.difference(old_taking_set))
-                        current_state.current_fails += retaken_cards
-                    current_state.past_answers[problem.id] = new_answer.answers
-                    answers.append(new_answer)
+        if solution is None:
+            print(f'solution not found with using {using_chunks} chunks')
+            continue
 
-            should.save_yaml(PICK_CARDS_YAML)
-            current_state.save_yaml(STATE_YAML)
-            return answers
+        picks_by_problem, acc = solution
+        score = calc_score(
+            problem.data,
+            current_state.current_fails,
+            using_chunks,
+            const=score_const
+        )
+        if score_max < score:
+            score_max = score
+            for picks in picks_by_problem:
+                new_answer = Answer(
+                    problem_id=problem.id,
+                    answers=list(map(
+                        lambda card_index: card_index.as_0_pad(),
+                        picks,
+                    )),
+                )
+                if problem.id in current_state.past_answers:
+                    new_taking_set = set(new_answer.answers)
+                    old_taking_set = set(
+                        current_state.past_answers[problem.id])
+                    retaken_cards = len(
+                        new_taking_set.difference(old_taking_set))
+                    current_state.current_fails += retaken_cards
+                current_state.past_answers[problem.id] = new_answer.answers
+                answers.append(new_answer)
 
-        print(f'solution not found with using {using_chunks} chunks')
+        should.save_yaml(PICK_CARDS_YAML)
+        current_state.save_yaml(STATE_YAML)
+        return answers
     return []
 
 
