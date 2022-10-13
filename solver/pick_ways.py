@@ -1,38 +1,40 @@
-from solver.card import CardIndex, ShouldPickCardsByRound
-from typing import Final, Iterable, Optional, Tuple, TypedDict
+from dataclasses import dataclass
+from solver.card import CardIndex, ShouldPickCardsByProblem
+from typing import Final, Iterable, Optional, Tuple
+from itertools import combinations
 
 
 def solve_by_binary_search(
-    rounds: int,
-    should_pick_sets: ShouldPickCardsByRound
-) -> Optional[Tuple[list[CardIndex], float]]:
+    problems: int,
+    should_pick_sets: ShouldPickCardsByProblem
+) -> Optional[Tuple[list[list[CardIndex]], float]]:
     EPS: Final = 0.001
 
     start = 0.0
     end = 1.0
     while EPS < (end - start):
         mid = (end - start) / 2 + start
-        ways = solve(rounds, should_pick_sets, mid)
+        ways = solve(problems, should_pick_sets, mid)
         if ways is None:
             end = mid
         else:
             start = mid
-    ways = solve(rounds, should_pick_sets, start)
+    ways = solve(problems, should_pick_sets, start)
     if ways is None:
         return None
     return (ways, start)
 
 
 def solve(
-    rounds: int,
-    should_pick_sets: ShouldPickCardsByRound,
+    problems: int,
+    should_pick_sets: ShouldPickCardsByProblem,
     pick_threshold: float
-) -> Optional[list[CardIndex]]:
+) -> Optional[list[list[CardIndex]]]:
     """
     最も多く札が取れるような、問題ごとの札の取り方を探索する。
 
     引数:
-        - rounds: この試合の問題数。
+        - problems: この試合の問題数。
         - should_pick_sets: 各問題データごとに、その札が含まれている確率のデータ。
         - pick_threshold: その札を取るべきと見なす確率のしきい値。
 
@@ -40,59 +42,71 @@ def solve(
         各問題ごとに取る札の種類を格納したリスト。取る札が存在しない場合は None を返す。
     """
 
-    class ShouldPickList(TypedDict):
-        problem_round: int
-        cards: list[CardIndex]
-
     pick_lists = convert_to_pick_lists(
-        rounds, should_pick_sets, pick_threshold
+        should_pick_sets, pick_threshold
     )
     if pick_lists is None:
         return None
 
-    def index_from_cards(cards: Iterable[CardIndex]) -> int:
-        index = 0
-        for card in cards:
-            index |= 1 << hash(card)
-        return index
+    def index_from_cards(cards_by_problem: Iterable[list[CardIndex]]) -> int:
+        indexes = 0
+        for cards in cards_by_problem:
+            index = 0
+            for card in cards:
+                index |= 1 << hash(card)
+            indexes = (indexes << 45) + index
+        return indexes
 
-    memo: dict[int, Optional[list[CardIndex]]] = {}
+    memo: dict[int, Optional[list[list[CardIndex]]]] = {}
 
     def inner(
-        curr_ways: list[CardIndex],
+        curr_ways: list[list[CardIndex]],
         visited: set[CardIndex],
         pick_lists: list[ShouldPickList]
-    ) -> Optional[list[CardIndex]]:
+    ) -> Optional[list[list[CardIndex]]]:
         index = index_from_cards(curr_ways)
         if index in memo:
             return memo[index]
         curr_round = len(curr_ways)
-        if curr_round == rounds:
+        if curr_round == problems:
             return curr_ways
 
-        cards = pick_lists[curr_round]["cards"]
-        for card in filter(lambda card: card not in visited, cards):
-            visited.add(card)
-            curr_ways.append(card)
+        patterns = combinations(
+            pick_lists[curr_round].cards,
+            pick_lists[curr_round].picks
+        )
+        filtered_patterns = filter(
+            lambda cards: all(map(
+                lambda card: card not in visited,
+                cards
+            )),
+            patterns
+        )
+        for pattern in filtered_patterns:
+            curr_ways.append(list(pattern))
+            for card in pattern:
+                visited.add(card)
             recursive_result = inner(curr_ways, visited, pick_lists)
             memo[index_from_cards(curr_ways)] = recursive_result
             if recursive_result is not None:
                 return recursive_result
+            for card in pattern:
+                visited.discard(card)
             curr_ways.pop()
-            visited.discard(card)
         return None
 
     return inner([], set(), pick_lists)
 
 
-class ShouldPickList(TypedDict):
-    problem_round: int
+@dataclass(frozen=True)
+class ShouldPickList:
+    problem_id: str
     cards: list[CardIndex]
+    picks: int
 
 
 def convert_to_pick_lists(
-    rounds: int,
-    should_pick_sets: ShouldPickCardsByRound,
+    should_pick_sets: ShouldPickCardsByProblem,
     pick_threshold: float
 ) -> Optional[list[ShouldPickList]]:
     """
@@ -100,7 +114,6 @@ def convert_to_pick_lists(
     このとき、このデータを試合全体を通した確率として再計算する。
 
     引数:
-        - rounds: この試合の問題数。
         - should_pick_sets: 各問題データごとに、その札が含まれている確率のデータ。
         - pick_threshold: その札を取るべきと見なす確率のしきい値。
 
@@ -109,7 +122,7 @@ def convert_to_pick_lists(
     """
 
     pick_lists: list[ShouldPickList] = []
-    prev_probabilities: dict[CardIndex, float] = {}
+    opposite_sums: dict[str, dict[CardIndex, float]] = {}
 
     """
     ラウンド i で札 c と推定される確率を P_i,c とし,
@@ -119,22 +132,38 @@ def convert_to_pick_lists(
     P(ラウンド i で c を選ぶ ∩ ラウンド i - 1 で c を選ばない)
         = P(ラウンド i で c を選ぶ | ラウンド i - 1 で c を選ばない)
         * P(ラウンド i - 1 で c を選ばない)
-    Q_i,c = P_i,c * (Σ_{d ≠ c} P_i-1,d) = P_i,c * (1 - P_i-1,c)
+    Q_i,c = P_i,c * (Σ_{d ≠ c} P_i-1,d)
     """
-    for r in range(rounds):
-        pick_lists.append({
-            "problem_round": r,
-            "cards": [],
-        })
+
+    problems = iter(should_pick_sets.problems())
+    prev = next(problems)
+    opposite_sums[prev] = {}
+    for index in CardIndex.all():
+        opposite_sums[prev][index] = should_pick_sets.probability(prev, index)
+    for problem in problems:
+        opposite_sums[problem] = {}
+        for after in CardIndex.all():
+            opposite_sums[problem][after] = 0.0
+            for before in CardIndex.all():
+                if before != after:
+                    opposite_sums[problem][after] += \
+                        opposite_sums[prev][before]
+        prev = problem
+
+    for problem in should_pick_sets.problems():
+        picks = should_pick_sets.picks_on(problem)
+        pick_lists.append(ShouldPickList(
+            problem_id=problem,
+            cards=[],
+            picks=picks,
+        ))
         for card in CardIndex.all():
-            prev_probability = prev_probabilities.get(card, 0.0)
             probability = should_pick_sets.probability(
-                r, card
-            ) * (1.0 - prev_probability)
+                problem, card
+            ) * opposite_sums[problem][card]
             if pick_threshold < probability:
-                pick_lists[-1]["cards"].append(card)
-            prev_probabilities[card] = probability
-        if len(pick_lists[-1]["cards"]) == 0:
+                pick_lists[-1].cards.append(card)
+        if len(pick_lists[-1].cards) < picks:
             return None
 
     return pick_lists

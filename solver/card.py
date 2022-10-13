@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Final, Iterable
+from typing import Any, Final, Iterable
 import yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -25,6 +25,9 @@ class CardIndex:
 
     def __str__(self) -> str:
         return KANA[self._index - 1]
+
+    def as_0_pad(self) -> str:
+        return f'{self._index:02}'
 
     @staticmethod
     def from_kana(kana: str) -> "CardIndex":
@@ -73,37 +76,88 @@ class IncludedRates:
             raise ValueError("len of rates must equal to 88")
 
 
-@dataclass(eq=False)
-class ShouldPickCardsByRound:
+@dataclass(eq=True)
+class ShouldPickCards:
     """
-    各問題データごとに、その札が含まれている確率を管理する。
+    その札が含まれている確率と取るべき個数を表す。
     """
-    _should: list[dict[CardIndex, float]]
+    probabilities: dict[CardIndex, float]
+    picks: int
 
-    def __init__(self, rounds: int) -> None:
-        self._should = [dict() for _ in range(rounds)]
+    def plain(self):
+        return {
+            "probabilities": {
+                hash(k): v for k, v in self.probabilities.items()
+            },
+            "picks": self.picks,
+        }
+
+    @staticmethod
+    def from_plain(plain: dict[str, Any]) -> "ShouldPickCards":
+        probabilities = {
+            CardIndex(k): v for k, v in plain["probabilities"].items()
+        }
+        return ShouldPickCards(
+            probabilities=probabilities,
+            picks=plain["picks"]
+        )
+
+
+@dataclass(eq=False)
+class ShouldPickCardsByProblem:
+    """
+    各問題データごとに、その札が含まれている確率と取るべき個数を管理する。
+    """
+    _should: dict[str, ShouldPickCards]
+    _problems: list[str]
+
+    def __init__(self) -> None:
+        self._should = dict()
+        self._problems = []
 
     def save_yaml(self, path: str) -> None:
-        output = yaml.dump(self._should, Dumper=Dumper)
+        mapped = {k: v.plain() for k, v in self._should.items()}
+        output = yaml.dump(mapped, Dumper=Dumper)
         with open(path, 'w') as f:
             f.truncate()
             f.write(output)
 
-    def add(self, round: int, index: CardIndex, prob: float) -> None:
-        self._should[round][index] = prob
+    def insert(self, problem: str, index: CardIndex, prob: float) -> None:
+        if problem not in self._problems:
+            self._problems.append(problem)
+            self._should[problem] = ShouldPickCards({}, 1)
+        self._should[problem].probabilities[index] = prob
 
-    def remove(self, round: int, index: CardIndex) -> None:
-        self._should[round].pop(index)
+    def remove(self, problem: str, index: CardIndex) -> None:
+        self._should[problem].probabilities.pop(index)
 
-    def cards_on(self, round: int) -> int:
-        return len(self._should[round])
+    def cards_on(self, problem: str) -> int:
+        return len(self._should[problem].probabilities)
 
-    def probability(self, round: int, index: CardIndex) -> float:
-        return self._should[round].get(index, 0.0)
+    def set_picks_on(self, problem: str, picks: int) -> None:
+        if problem not in self._problems:
+            self._problems.append(problem)
+            self._should[problem] = ShouldPickCards({}, 1)
+        self._should[problem].picks = picks
+
+    def picks_on(self, problem: str) -> int:
+        return self._should[problem].picks
+
+    def problems(self) -> Iterable[str]:
+        return self._problems
+
+    def problem_count(self) -> int:
+        return len(self._problems)
+
+    def probability(self, problem: str, index: CardIndex) -> float:
+        return self._should[problem].probabilities.get(index, 0.0)
 
 
-def should_pick_cards_from_yaml(path: str) -> ShouldPickCardsByRound:
-    should = ShouldPickCardsByRound(0)
+def should_pick_cards_from_yaml(path: str) -> ShouldPickCardsByProblem:
+    should = ShouldPickCardsByProblem()
     with open(path, 'r', newline='') as f:
-        should._should = yaml.load(f, Loader=Loader)
+        plain = yaml.load(f, Loader=Loader)
+        should._should = {
+            k: ShouldPickCards.from_plain(v) for k, v in plain.items()
+        }
     return should
