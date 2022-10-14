@@ -55,7 +55,7 @@ def main():
     if model is None:
         raise Exception(f'model was not found at {MODEL_PATH}')
 
-    req = MockRequester() if DEBUG == "True" else NetRequester(
+    req = MockRequester('E01') if DEBUG == "True" else NetRequester(
         endpoint=ENDPOINT, token=TOKEN)
     match = req.get_match()
     score_const = ScoreConstant(1, match.bonus_factor, match.penalty)
