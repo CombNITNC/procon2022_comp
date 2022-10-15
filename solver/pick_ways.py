@@ -68,7 +68,7 @@ def solve(
         if index in memo:
             return memo[index]
         curr_round = len(curr_ways)
-        if problems <= curr_round:
+        if problems <= curr_round or len(pick_lists) <= curr_round:
             return curr_ways
 
         patterns = combinations(
