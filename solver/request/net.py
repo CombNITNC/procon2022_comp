@@ -76,7 +76,7 @@ class NetRequester(AbstractRequester):
             params={'n': using_chunks}
         )
         if not chunks_res.ok:
-            raise Exception(chunks_res.text)
+            raise Exception(f"{chunks_res.status_code} {chunks_res.text}")
         chunks: list[Chunk] = []
         for chunk_filename in chunks_res.json()['chunks']:
             index = int(chunk_filename.split("_")[0][7:])
