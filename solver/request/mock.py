@@ -27,7 +27,7 @@ class MockRequester(AbstractRequester):
             self.nsplit: int = parsed["nsplit"]
 
     def get_match(self) -> Match:
-        return Match(1, [3.0, 2.5, 2.0, 1.5, 1.0], 20)
+        return Match(1, [3.0, 2.5, 2.0, 1.5, 1.0], 20, 20, 10, 100)
 
     def get_problem(self) -> Problem:
         now = gmtime()
