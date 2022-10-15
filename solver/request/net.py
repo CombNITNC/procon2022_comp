@@ -116,10 +116,10 @@ class NetRequester(AbstractRequester):
         res = requests.post(
             f'{self.endpoint}/problem',
             headers=headers,
-            data={
+            json={
                 'problem_id': answer.problem_id,
-                'answers': answer.answers
-            }
+                'answers': answer.answers,
+            },
         )
         if not res.ok:
             raise Exception(res.text)
