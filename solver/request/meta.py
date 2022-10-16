@@ -18,6 +18,9 @@ class Match:
     problems: int
     bonus_factor: list[float]
     penalty: int
+    change_penalty: int
+    wrong_penalty: int
+    correct_point: int
 
 
 @dataclass(frozen=True)
@@ -33,7 +36,7 @@ class Problem:
     """
     id: str
     chunks: int
-    starts_at: int
+    start_at: int
     time_limit: int
     data: int
 

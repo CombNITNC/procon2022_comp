@@ -16,7 +16,7 @@ def twenty_times_more_data(image, label):
         image_processed = image_processor(cast_image)
         image_list.append((image_processed))
     image_label_dataset = Dataset.from_tensor_slices((image_list, label_list))
-    image_label_dataset.batch(32)
+    image_label_dataset.batch(200)
     image_label_dataset.prefetch(AUTOTUNE)
 
     return image_label_dataset
